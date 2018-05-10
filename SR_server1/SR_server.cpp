@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdlib.h> 
 #include <time.h> 
@@ -115,7 +115,10 @@ void ackHandler(char c) {
 	unsigned char index = (unsigned char)c - 1; //序列号减一 ，表示对方确认收到了index号包
 	printf("Recv a ack of %d\n", index);
 	// 收到的ACK>=等待的ACK 且 收到的ACK在窗口内（ 窗口跨过了end->0，则一定在内 或 真的在内 ）
-	if (curAck <= index && (curAck + SEND_WIND_SIZE >= SEQ_SIZE ? true : index<curAck + SEND_WIND_SIZE)) {
+	
+	//if (curAck <= index && (curAck + SEND_WIND_SIZE >= SEQ_SIZE ? true : index<curAck + SEND_WIND_SIZE)) 
+	if ((curAck + SEND_WIND_SIZE >= SEQ_SIZE) ? (curAck <= index || index <(curAck + SEND_WIND_SIZE + SEQ_SIZE) % SEQ_SIZE) : (curAck <= index && index<curAck + SEND_WIND_SIZE))
+	{
 
 		ack[index] = 3;
 		while (ack[curAck] == 3) {
@@ -217,7 +220,7 @@ int main(int argc, char* argv[])
 			//进入 gbn 测试阶段 
 			//首先 server（server 处于 0 状态）向 client 发送 205 状态码（server进入 1 状态） 
 			//server  等待 client 回复 200 状态码，如果收到（server 进入 2 状态），	则开始传输文件，否则延时等待直至超时\
-										//在文件传输阶段，server 发送窗口大小设为 
+													//在文件传输阶段，server 发送窗口大小设为 
 			ZeroMemory(buffer, sizeof(buffer));
 			int recvSize;
 			int waitCount = 0;
